@@ -5,24 +5,35 @@ const __dirname = path.dirname(__filename);
 import express from 'express';
 import expressWs from 'express-ws';
 import serveStatic from 'serve-static';
-let views = [];
 const { app, getWss, applyTo } = expressWs(express());
 const port = 8080;
+const views = {};
 app.use(serveStatic(`${__dirname}/public`));
 app.ws('/ws', (ws, req) => {
     ws.on('message', (msg) => {
-        if (msg == 'I am a view client.') {
-            views.push(ws);
+        const recieveData = JSON.parse(msg);
+        if (recieveData.room == null) {
             return;
         }
-        views.forEach(view => {
-            view.send(msg);
+        if (views[recieveData.room] == null) {
+            views[recieveData.room] = [];
+        }
+        if (recieveData.isViewOpen) {
+            views[recieveData.room].push(ws);
+            return;
+        }
+        views[recieveData.room].forEach(view => {
+            view.send(recieveData.data);
         });
         ws.send(`return: ${msg}`);
-        console.log(msg);
     });
     ws.on('close', (code, reason) => {
-        views = views.filter((view) => view !== ws);
+        const viewsArray = Object.entries(views).map(views => [views[0], views[1].filter(view => view !== ws)]);
+        for (const [room, wss] of viewsArray) {
+            if (typeof room === "string" && typeof wss !== "string") {
+                views[room] = wss;
+            }
+        }
     });
 });
 app.listen(port, () => {

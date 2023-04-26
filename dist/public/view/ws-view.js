@@ -1,3 +1,4 @@
+const params = new URL(window.location.href).searchParams;
 export const connect = (callback) => {
     const host = `ws://${location.host}/ws`;
     let ws = new WebSocket(host);
@@ -6,7 +7,12 @@ export const connect = (callback) => {
         console.log(e.data);
     });
     ws.addEventListener('open', (e) => {
-        ws.send('I am a view client.');
+        const sendData = {
+            isViewOpen: true,
+            room: params.get('room'),
+            data: ''
+        };
+        ws.send(JSON.stringify(sendData));
         console.log('opened');
         console.log('Enjoy being on stage!');
     });

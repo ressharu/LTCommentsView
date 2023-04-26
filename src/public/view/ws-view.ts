@@ -1,3 +1,5 @@
+const params = new URL(window.location.href).searchParams;
+
 type Connect = (callback: (msg: string) => void) => void;
 export const connect: Connect = (callback) => {
     const host = `ws://${location.host}/ws`;
@@ -9,7 +11,13 @@ export const connect: Connect = (callback) => {
     });
 
     ws.addEventListener('open', (e) => {
-        ws.send('I am a view client.')
+        const sendData = {
+            isViewOpen: true,
+            room: params.get('room'),
+            data: ''
+        };
+        ws.send(JSON.stringify(sendData));
+
         console.log('opened');
         console.log('Enjoy being on stage!')
     });

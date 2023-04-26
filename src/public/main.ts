@@ -1,6 +1,8 @@
 const textInput: HTMLInputElement | null = document.querySelector('#text');
 const sendBtn = document.querySelector('#send');
 
+const params = new URL(window.location.href).searchParams;
+
 if (textInput == null || sendBtn == null) {
     throw new Error('something happened in html');
 }
@@ -9,12 +11,22 @@ const host = `ws://${location.host}/ws`;
 let ws = new WebSocket(host);
 
 sendBtn.addEventListener('click', (e) => {
-    ws.send(textInput.value);
+    const sendData = {
+        isViewOpen: false,
+        room: params.get('room'),
+        data: textInput.value
+    };
+    ws.send(JSON.stringify(sendData));
     textInput.value = '';
 });
 addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
-        ws.send(textInput.value);
+        const sendData = {
+            isViewOpen: false,
+            room: params.get('room'),
+            data: textInput.value
+        };
+        ws.send(JSON.stringify(sendData));
         textInput.value = '';
     }
 });
