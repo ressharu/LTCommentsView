@@ -1,0 +1,19 @@
+body {
+    margin: 0;
+}
+canvas {
+    width: 100%;
+    position: absolute;
+    top: 0;
+}
+details {
+    z-index: 100;
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+video {
+    width: 100%;
+    position: absolute;
+    top: 0;
+}

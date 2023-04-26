@@ -1,0 +1,23 @@
+{
+  "name": "ltcommentsview",
+  "type": "module",
+  "version": "0.0.1",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "start": "npx tsc && node dist/index.js"
+  },
+  "author": "39sho",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/express": "^4.17.17",
+    "@types/express-ws": "^3.0.1",
+    "@types/node": "^18.15.13",
+    "typescript": "^5.0.4"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "express-ws": "^5.0.2",
+    "serve-static": "^1.15.0"
+  }
+}
