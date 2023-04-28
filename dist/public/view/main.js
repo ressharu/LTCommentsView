@@ -4,15 +4,20 @@ class Message {
     data;
     x;
     y;
-    constructor(data, x, y) {
+    width;
+    constructor(data, x, y, width) {
         this.data = data;
         this.x = x;
         this.y = y;
+        this.width = width;
     }
-    update(deltaTime, textWidth, canvasWidth) {
+    checkStartPos(canvasWidth) {
+        return this.x + this.width / 2 >= canvasWidth;
+    }
+    update(deltaTime, canvasWidth) {
         const time = 3;
-        this.x -= (textWidth + canvasWidth) / time * deltaTime;
-        if (this.x < 0 - textWidth) {
+        this.x -= (this.width + canvasWidth) / time * deltaTime;
+        if (this.x < 0 - this.width) {
             return true;
         }
         else {
@@ -48,6 +53,7 @@ const settings = () => {
     ctx.fillStyle = color.value;
 };
 let messages = [];
+let fontheight = 0;
 let prevTimeStamp = 0;
 const update = (timeStamp) => {
     if (prevTimeStamp === 0) {
@@ -59,7 +65,7 @@ const update = (timeStamp) => {
     settings();
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     messages = messages.flatMap((message) => {
-        const isEnd = message.update(deltaTime, ctx.measureText(message.data).width, canvas.width);
+        const isEnd = message.update(deltaTime, canvas.width);
         if (isEnd) {
             return [];
         }
@@ -74,6 +80,17 @@ const update = (timeStamp) => {
     id = requestAnimationFrame(update);
 };
 let id = requestAnimationFrame(update);
+let nextY = fontheight / 2;
 connect((msg) => {
-    messages.push(new Message(msg, canvas.width + ctx.measureText(msg).width / 2, Math.random() * canvas.height / 2 + parseInt(fontsize.value)));
+    fontheight = parseInt(fontsize.value);
+    nextY = fontheight / 2;
+    while (nextY < canvas.height) {
+        if (messages.filter(message => message.y === nextY).filter(message => message.checkStartPos(canvas.width)).length === 0) {
+            break;
+        }
+        else {
+            nextY += fontheight;
+        }
+    }
+    messages.push(new Message(msg, canvas.width + ctx.measureText(msg).width / 2, nextY, ctx.measureText(msg).width));
 });

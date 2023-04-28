@@ -5,16 +5,21 @@ class Message {
     data: string;
     x: number;
     y: number;
-    constructor(data: string, x: number, y: number) {
+    width: number;
+    constructor(data: string, x: number, y: number, width: number) {
         this.data = data;
         this.x = x;
         this.y = y;
+        this.width = width;
     }
-    update(deltaTime: number, textWidth: number, canvasWidth: number): boolean {
+    checkStartPos(canvasWidth: number) {
+       return this.x + this.width / 2 >= canvasWidth;
+    }
+    update(deltaTime: number, canvasWidth: number): boolean {
         const time = 3;
-        this.x -= (textWidth + canvasWidth) / time * deltaTime;
+        this.x -= (this.width + canvasWidth) / time * deltaTime;
 
-        if (this.x < 0 - textWidth) {
+        if (this.x < 0 - this.width) {
             return true;
         } else {
             return false;
@@ -56,6 +61,8 @@ const settings: Settings = () => {
 
 let messages: Message[] = [];
 
+let fontheight = 0;
+
 let prevTimeStamp = 0;
 type Update = (timeStamp: number) => void;
 const update: Update = (timeStamp) => {
@@ -71,7 +78,7 @@ const update: Update = (timeStamp) => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     messages = messages.flatMap((message) => {
-        const isEnd = message.update(deltaTime, ctx.measureText(message.data).width, canvas.width);
+        const isEnd = message.update(deltaTime, canvas.width);
         if (isEnd) {
             return [];
         } else {
@@ -89,6 +96,17 @@ const update: Update = (timeStamp) => {
 
 let id = requestAnimationFrame(update)
 
+let nextY = fontheight / 2;
 connect((msg) => {
-    messages.push(new Message(msg, canvas.width + ctx.measureText(msg).width / 2, Math.random() * canvas.height / 2 + parseInt(fontsize.value)));
+    fontheight = parseInt(fontsize.value);
+    nextY = fontheight / 2;
+    while (nextY < canvas.height) {
+        if (messages.filter(message => message.y === nextY).filter(message => message.checkStartPos(canvas.width)).length === 0) {
+            break;
+        } else {
+            nextY += fontheight;
+        }
+    }
+
+    messages.push(new Message(msg, canvas.width + ctx.measureText(msg).width / 2, nextY, ctx.measureText(msg).width))
 });
