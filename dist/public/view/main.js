@@ -12,7 +12,7 @@ class Message {
     update(deltaTime, textWidth, canvasWidth) {
         const time = 3;
         this.x -= (textWidth + canvasWidth) / time * deltaTime;
-        if (this.x < 0 - textWidth / 2) {
+        if (this.x < 0 - textWidth) {
             return true;
         }
         else {
@@ -47,7 +47,7 @@ const settings = () => {
     ctx.font = `${fontsize.value}px ${font.value}`;
     ctx.fillStyle = color.value;
 };
-const messages = [];
+let messages = [];
 let prevTimeStamp = 0;
 const update = (timeStamp) => {
     if (prevTimeStamp === 0) {
@@ -58,7 +58,7 @@ const update = (timeStamp) => {
     const deltaTime = (timeStamp - prevTimeStamp) * 0.001;
     settings();
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    messages.flatMap((message) => {
+    messages = messages.flatMap((message) => {
         const isEnd = message.update(deltaTime, ctx.measureText(message.data).width, canvas.width);
         if (isEnd) {
             return [];
