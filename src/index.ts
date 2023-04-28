@@ -17,7 +17,7 @@ app.use(serveStatic(`${__dirname}/public`));
 
 app.ws('/ws', (ws, req) => {
     ws.on('message', (msg: string) => {
-        const recieveData: {isViewOpen: boolean, room: string | null, data: string} = JSON.parse(msg);
+        const recieveData: {isViewOpen: boolean, room: string, data: string} = JSON.parse(msg);
 
         if (recieveData.room == null) {
             return;

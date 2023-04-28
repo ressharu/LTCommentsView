@@ -20,7 +20,7 @@ addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
         const sendData = {
             isViewOpen: false,
-            room: params.get('room'),
+            room: params.get('room') ?? '',
             data: textInput.value
         };
         ws.send(JSON.stringify(sendData));

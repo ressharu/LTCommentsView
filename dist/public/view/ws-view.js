@@ -9,7 +9,7 @@ export const connect = (callback) => {
     ws.addEventListener('open', (e) => {
         const sendData = {
             isViewOpen: true,
-            room: params.get('room'),
+            room: params.get('room') ?? '',
             data: ''
         };
         ws.send(JSON.stringify(sendData));
