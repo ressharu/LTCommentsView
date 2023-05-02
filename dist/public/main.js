@@ -5,36 +5,37 @@ const params = new URL(window.location.href).searchParams;
 if (textInput == null || sendBtn == null) {
     throw new Error('something happened in html');
 }
-const host = `ws://${location.host}/ws`;
-let ws = new WebSocket(host);
-sendBtn.addEventListener('click', (e) => {
+sendBtn.addEventListener('click', async (e) => {
     const sendData = {
         isViewOpen: false,
-        room: params.get('room'),
+        room: params.get('room') ?? '',
         data: textInput.value
     };
-    ws.send(JSON.stringify(sendData));
+    const res = await fetch('/post', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(sendData)
+    });
+    console.log(await res.text());
     textInput.value = '';
 });
-addEventListener('keydown', (e) => {
+addEventListener('keydown', async (e) => {
     if (e.key === 'Enter') {
         const sendData = {
             isViewOpen: false,
             room: params.get('room') ?? '',
             data: textInput.value
         };
-        ws.send(JSON.stringify(sendData));
+        const res = await fetch('/post', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(sendData)
+        });
+        console.log(await res.text());
         textInput.value = '';
     }
-});
-ws.addEventListener('message', (e) => {
-    console.log(e.data);
-});
-ws.addEventListener('open', (e) => {
-    console.log('opened');
-});
-ws.addEventListener('close', (e) => {
-    console.log('closed');
-    ws = new WebSocket(host);
-    console.log('reopening...');
 });

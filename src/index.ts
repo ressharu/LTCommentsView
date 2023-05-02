@@ -4,48 +4,71 @@ const __filename = url.fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 import express from 'express';
-import expressWs from 'express-ws';
 import serveStatic from 'serve-static';
-import { WebSocket } from 'ws';
+import bodyParser from "body-parser";
 
-const { app, getWss, applyTo } = expressWs(express());
-const port = 8080;
+const app = express();
+app.use(bodyParser.json());
+const port = parseInt(process.env.PORT ?? '8080');
 
-const views: {[room: string] : WebSocket[]} = {};
+const views: { [room: string]: express.Response[] } = {};
 
 app.use(serveStatic(`${__dirname}/public`));
 
-app.ws('/ws', (ws, req) => {
-    ws.on('message', (msg: string) => {
-        const recieveData: {isViewOpen: boolean, room: string, data: string} = JSON.parse(msg);
+type Params = {
+    room: string
+};
 
-        if (recieveData.room == null) {
-            return;
-        }
-        
-        if (views[recieveData.room] == null) {
-            views[recieveData.room] = [];
-        }
-
-        if (recieveData.isViewOpen) {
-            views[recieveData.room].push(ws);
-            return;
-        }
-
-        views[recieveData.room].forEach(view => {
-            view.send(recieveData.data);
-        })
-        ws.send(`return: ${msg}`)
+app.get('/events', (req, res) => {
+    res.writeHead(200, {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive'
     });
 
-    ws.on('close', (code, reason) => {
-        const viewsArray = Object.entries(views).map(views => [views[0], views[1].filter(view => view !== ws)]);
-        for (const [room, wss] of viewsArray) {
-            if (typeof room === "string" && typeof wss !== "string") {
-                views[room] = wss;
-            }
+    if (typeof req.query.room != 'string') {
+        res.end();
+        return;
+    }
+    
+    console.log('sse: ', req.query.room);
+
+    if (views[req.query.room] == null) {
+        views[req.query.room] = [];
+    }
+
+    if (!views[req.query.room].includes(res)) {
+        views[req.query.room].push(res);
+    }
+
+    res.on('close', () => {
+        if (typeof req.query.room != 'string') {
+            return;
         }
+
+        views[req.query.room] = views[req.query.room].filter(v => v === res);
+
+        if (views[req.query.room].length === 0) {
+            delete views[req.query.room];
+        }
+    });
+});
+
+app.post('/post', (req, res) => {
+    const recieveData: { isViewOpen: boolean, room: string, data: string } = req.body;
+
+    if (views[recieveData.room] == null) {
+        res.end();
+        return;
+    }
+
+    console.log('post: ', recieveData.room);
+    
+    views[recieveData.room].forEach(view => {
+        view.write(`data: ${recieveData.data}\n\n`);
     })
+
+    res.send(`return: ${JSON.stringify(req.body)}`);
 });
 
 app.listen(port, () => {
