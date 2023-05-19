@@ -7,6 +7,9 @@
   "scripts": {
     "start": "node dist/index.js"
   },
+  "engines": {
+    "node": ">=12.0.0"
+  },
   "author": "39sho",
   "license": "ISC",
   "devDependencies": {
